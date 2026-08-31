@@ -5,82 +5,76 @@ def call(Map configMap) {
                 label 'AGENT-1'
             }
         }
-
-        environment {
-            COURSE = 'Jenkins'
-            ACC_ID = '634758830486'
-            PROJECT = "${configMap.get('project')}"
-            COMPONENT = "${configMap.get('component')}"
-            APP_VERSION = ''
+        environment { 
+            Course = 'Jenkins'
+            appVersion = ""
+            ACC_ID = "634758830486"
+            PROJECT = configMap.get("project")
+            COMPONENT = configMap.get("component")
         }
-
         options {
-            timeout(time: 60, unit: 'MINUTES')
+            timeout(time: 30, unit: 'MINUTES') 
             disableConcurrentBuilds()
         }
-
         stages {
             stage('App Version') {
                 steps {
                     script {
                         def packageJson = readJSON file: 'package.json'
-                        env.APP_VERSION = packageJson.version
-                        echo "AppVersion: ${env.APP_VERSION}"
+                        appVersion = packageJson.version
+                        echo "AppVersion: ${appVersion}"
                     }
                 }
             }
-
             stage('npm Install') {
                 steps {
-                    sh 'npm install'
-                }
-            }
-
-            stage('Unit Test') {
-                steps {
-                    sh 'npm test'
-                }
-            }
-
-            stage('ECR') {
-                steps {
-                    withAWS(
-                        region: 'us-east-1',
-                        credentials: 'aws'
-                    ) {
+                    script {
                         sh """
-                            aws ecr get-login-password --region us-east-1 | \
-                            docker login \
-                            --username AWS \
-                            --password-stdin ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com
-
-                            docker build \
-                            -t ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${APP_VERSION} .
-
-                            docker push \
-                            ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${APP_VERSION}
+                            npm install
                         """
                     }
                 }
             }
-        }
+            stage('Unit Test') {
+                steps {
+                    script {
+                        sh """
+                            npm test
+                        """
+                    }
+                }
+            }
+            stage('ECR') {
+                steps {
+                    script {
+                        withAWS(region: 'us-east-1', credentials: 'aws') {
+                            sh """
+                                aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com
+                                docker build -t ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${appVersion} .
+                                docker push ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${appVersion}
+                            """
+                        }
+                    }
+                }
+            }
+        
+        
 
-        post {
-            always {
+        }
+        post { 
+            always { 
                 echo 'I will always say Hello again!'
                 cleanWs()
-            }
 
+            }
             success {
-                echo 'I will run if pipeline succeeds'
+                echo 'I will run if pipeline sucess'
             }
-
             failure {
-                echo 'I will run if pipeline fails'
+                echo 'I will run if pipeline failed'
             }
-
             aborted {
-                echo 'Pipeline is aborted'
+                echo 'pipeline is aborted'
             }
         }
     }
