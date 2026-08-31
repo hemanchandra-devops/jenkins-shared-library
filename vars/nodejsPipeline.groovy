@@ -9,8 +9,8 @@ def call(Map configMap) {
             Course = 'Jenkins'
             appVersion = ""
             ACC_ID = "634758830486"
-            PROJECT = "${configMap.project}"
-            COMPONENT = "${configMap.component}"
+            PROJECT = configMap.get("project")
+            COMPONENT = configMap.get("component")
         }
         options {
             timeout(time: 60, unit: 'MINUTES') 
