@@ -57,13 +57,13 @@ def call(Map configMap) {
                     }
                 }
             }
-            stage('Trigger SG') {
+            stage('Trigger Deploy') {
                 steps {
                     build job: "../${COMPONENT}-deploy",
                         wait: false,
                         propagate: false,
                         parameters: [
-                            string(name: 'APP_VERSION', value: "${APP_VERSION}"),
+                            string(name: 'APP_VERSION', value: "${appVersion}"),
                             string(name: 'DEPLOY_TO', value: "dev")
                         ]            
                 }
