@@ -59,7 +59,7 @@ def call(Map configMap) {
             }
             stage('Trigger Deploy') {
                 steps {
-                    build job: "../${COMPONENT}-deploy",
+                    build job: "../../${COMPONENT}-deploy",
                         wait: false,
                         propagate: false,
                         parameters: [
